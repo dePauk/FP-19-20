@@ -111,6 +111,8 @@ abline(0,1, lty = 'dashed')
 
 
 
+# Napovedi so slabe, èe bi bile boljše, bi toèke ležale na oziroma bližje èrtkani èrti.
+
 
 
 

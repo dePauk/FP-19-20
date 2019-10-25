@@ -1,8 +1,7 @@
 library(actuar)
 
-# NALOGA 1
+# 1. NALOGA
 
-# a)
 
 vzorec <- scan("vzorec1.txt")
 graf_a <- hist(vzorec, col = "lightskyblue1", xlab = "Višina odškodnine", main="Histogram odškodnin")
@@ -10,14 +9,10 @@ graf_a <- hist(vzorec, col = "lightskyblue1", xlab = "Višina odškodnine", main
 # Pareto se ne začne v 0, tako kot moji podatki -> izberem to porazdelitev
 
 
-# b)
-
 modelirana_porazdelitev <- mde(vzorec,ppareto1,start=list(shape=1,min=3), measure="CvM")
 shape1 <- modelirana_porazdelitev$estimate[1]
 min1 <- modelirana_porazdelitev$estimate[2]
 
-
-# c)
 
 # freq=FALSE, da se ne bo krivulja izgledala, kot da je na x-osi zaradi različnih skal
 
@@ -30,9 +25,6 @@ legend("topright", "Pareto porazdelitev", col="blue", lwd=2)
 plot(ecdf(vzorec),xlab="Višina odškodnine", ylab="Porazdelitvena funkcija", main="Porazdelitvena fukncija odškodnin")
 curve(ppareto1(x,shape1,min1), from=min1, to=11, add= TRUE, col="blue", lwd=2)
 legend("bottomright", c("Pareto porazdelitev", "Empirična porazdelitev"), col= c("blue", "black"), lwd = 2)
-
-
-# d)
 
 n <- 20
 p <- 0.5
@@ -47,13 +39,41 @@ upanjeS <- upanjeY * upanjeN
 VarS <- upanjeN * VarY + (upanjeY^2)*VarN
 
 
-# NALOGA 2
+# 2.NALOGA
 
-diskretizirano <- diffinv(discretize(ppareto1(x, shape1, min1), step=0.25, from=0, to=10, method = "rounding"))
-plot(stepfun(seq(0,9.75,0.25), diskretizirano), do.points = FALSE, col="orange", lwd=2, ylab="Porazdelitvena funkcija", xlab= "x", main="Pareto porazdelitev")
+h = 0.25
+n = 80
+
+diskr <- discretize(ppareto1(x, shape1, min1), from=0, to=n*h, step=h, method = "rounding")
+
+
+plot(stepfun(seq(0,(n-1)*h,h), diffinv(diskr)), do.points = FALSE, col="orange", lwd=2, ylab="Porazdelitvena funkcija", xlab= "x", main="Pareto porazdelitev")
 curve(ppareto1(x, shape1, min1), from=0, to=10, add=TRUE, lwd=1)
 
+j <- aggregateDist(method = "recursive", model.freq = "binom", size=20, prob=0.5, 
+                   model.sev=diskr, maxit=1000000, tol=0.002, convolve=0, x.scale=h)
 
+s_upanje <- sum(knots(j)*diff(j))
+s_upanje_kvadrat  <- sum(knots(j)^2 * diff(j))
+s_varianca <- s_upanje_kvadrat - s_upanje^2
+
+
+# 3. NALOGA
+
+sim_N <- rbinom(10000, 20, 0.5)
+sim_S <- c()
+
+for (n in sim_N){
+  sim_S <- c(sim_S, sum(rpareto1(n, shape1, min1)))
+}
+
+E_simS <- mean(sim_S)
+var_simS <- var(sim_S)
+
+graf_simulacija <- plot(j)
+plot(ecdf(sim_S), add = TRUE, col = "red")
+legend("bottomright", legend = c("Panjerjev algoritem", "Monte Carlo simulacija"), box.lty=0,
+    col = c("black", "red"), lwd = 2:2)
 
 
 
